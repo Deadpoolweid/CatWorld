@@ -81,41 +81,86 @@ namespace CatWorld
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // TODO: Add your drawing code here
+            float scale = 0.04f;
 
-            var CatSize = new Size((texture.Width*0.06f),(texture.Height * 0.06f));
+            var CatSize = new Size((texture.Width*scale),(texture.Height * scale));
 
             
 
             spriteBatch.Begin();
 
-            float currentPoint = 0;
-            float currentFloor = 0;
             var vectors = new List<Vector2>();
-            while (currentPoint<Window.ClientBounds.Width)
-            {
-                while (currentFloor < Window.ClientBounds.Height)
-                {
-                    vectors.Add(new Vector2(currentPoint, currentFloor));
-                    currentFloor += CatSize.Height;
 
-                }
-                currentPoint += CatSize.Width;
-                currentFloor = 0;
+            int catsCount = (int)(Window.ClientBounds.Width/CatSize.Width);
+            float distanceX = (int) ((Window.ClientBounds.Width)/catsCount);
+
+            for (int i = 0; i < catsCount; i++)
+            {
+                vectors.Add(new Vector2(i*(distanceX) ,Window.ClientBounds.Height - CatSize.Height));
             }
 
-            var vector = new Vector2((Window.ClientBounds.Width / 2) - (CatSize.Width / 2),
-    (Window.ClientBounds.Height / 2) - (CatSize.Height / 2));
-            //vector = new Vector2(Window.ClientBounds.Width/2,Window.ClientBounds.Height/2);
+
+
+
+            //catsCount = (int) ((Window.ClientBounds.Width/2)/CatSize.Width);
+            catsCount /= 2;
+            //distanceX = (int) ((Window.ClientBounds.Width/2)/(catsCount));
+            float distanceY = (int)((Window.ClientBounds.Height - CatSize.Height*2+CatSize.Height/2) / (catsCount));
+
+
+            for (int i = 1; i < catsCount; i++)
+            {
+                for (int k = catsCount; k > 0; k--)
+                {
+                    if (catsCount - k == i)
+                    {
+                        vectors.Add(new Vector2(i*distanceX, k*distanceY));
+                    }
+                }
+            }
+
+
+            //for (int i = catsCount-2; i > 0; i--)
+            //{
+            //    vectors.Add(new Vector2((Window.ClientBounds.Width/2)+i*distanceX,(i)*distanceY));
+            //}
+
+            for (int i = catsCount-1; i > 0; i--)
+            {
+                for (int k = catsCount; k > 0; k--)
+                {
+                    if (k == i)
+                    {
+                        vectors.Add(new Vector2(i * distanceX+(Window.ClientBounds.Width/2)-(CatSize.Width/2), k * distanceY));
+                    }
+                }
+            }
+
+
+            vectors.Add(new Vector2(Window.ClientBounds.Width/2-CatSize.Width/2,0));
+            //vectors.Add(new Vector2(0,Window.ClientBounds.Height - CatSize.Height));
+            //vectors.Add(new Vector2(Window.ClientBounds.Width - CatSize.Width,Window.ClientBounds.Height - CatSize.Height));
+
 
             foreach (var vector2 in vectors)
             {
-                spriteBatch.Draw(texture,vector2,null,Color.White,0,Vector2.Zero,0.06f, SpriteEffects.None, 0);
+                spriteBatch.Draw(texture,vector2,null,Color.White,0,Vector2.Zero,scale, SpriteEffects.None, 0);
 
             }
             //spriteBatch.Draw(texture, Vector2.Zero, null, Color.White, 0, Vector2.Zero, 0.06f, SpriteEffects.None, 0);
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        public static float k(float width, float height)
+        {
+            return height/width;
+        }
+
+        public static float f(float x, float k)
+        {
+            return k * x;
         }
 
     }
