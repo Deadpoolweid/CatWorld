@@ -14,8 +14,14 @@ namespace CatWorld
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        private SpriteFont spriteFont;
         private Texture2D tCat;
         private Texture2D tTrain;
+        private Texture2D tSpace;
+
+        private float speed = 2f;
+
+        private Vector2 FontPosition;
 
         public Game1()
         {
@@ -33,6 +39,7 @@ namespace CatWorld
         {
             // TODO: Add your initialization logic here
 
+
             base.Initialize();
         }
 
@@ -47,7 +54,15 @@ namespace CatWorld
 
             tCat = Content.Load<Texture2D>("Cat");
             tTrain = Content.Load<Texture2D>("train");
+            tSpace = Content.Load<Texture2D>("Space");
 
+
+            spriteFont = Content.Load<SpriteFont>("Courier New");
+
+            CatSize = new Size((tCat.Width * CatScale), (tCat.Height * CatScale));
+
+
+            FontPosition = new Vector2(100,10);
 
             // TODO: use this.Content to load your game content here
         }
@@ -73,8 +88,15 @@ namespace CatWorld
 
             // TODO: Add your update logic here
 
+            position.X += speed;
+
+            if (position.X > Window.ClientBounds.Width - CatSize.Width || position.X < 0)
+                speed *= -1;
+
             base.Update(gameTime);
         }
+
+        Vector2 position = Vector2.Zero;
 
         /// <summary>
         /// This is called when the game should draw itself.
@@ -85,14 +107,11 @@ namespace CatWorld
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // TODO: Add your drawing code here
-            float CatScale = 0.02f;
-            float TrainScale = 0.3f;
-
-            var CatSize = new Size((tCat.Width*CatScale),(tCat.Height * CatScale));
-            var TrainSize = new Size(tTrain.Width*TrainScale,tTrain.Height * TrainScale);
-
-            int halfY = Window.ClientBounds.Height/2;
             
+            var TrainSize = new Size(tTrain.Width * TrainScale, tTrain.Height * TrainScale);
+
+            int halfY = Window.ClientBounds.Height / 2;
+            int halfX = Window.ClientBounds.Width / 2;
 
             spriteBatch.Begin();
 
@@ -100,40 +119,60 @@ namespace CatWorld
             var trains = new List<Vector2>();
 
 
-            for (int j = 0; j < 4; j++)
+            rotationAngle += 0.01f;
+
+            if (Forward)
             {
-                for (int i = 0; i < 4; i++)
+                scalePicture += 0.002f;
+                if (scalePicture > 0.5f)
                 {
-                    cats.Add(new Vector2((85 * TrainScale) + ((TrainSize.Width / 4.75f) * i) + j*(TrainSize.Width), halfY - (TrainScale)));
+                    scalePicture = CatScale;
                 }
-
-                trains.Add(new Vector2(j*TrainSize.Width, halfY - (35 * TrainScale) + CatSize.Height));
             }
-
-
-            Random r = new Random();
-
-
-
-            foreach (var train in trains)
+            else
             {
-                Color color = new Color(r.Next(255), r.Next(255), r.Next(255));
-                spriteBatch.Draw(tTrain, train, null, color, 0, Vector2.Zero, TrainScale, SpriteEffects.None, 0);
+                scalePicture -= 0.001f;
             }
 
+            Forward = !Forward;
             
+            spriteBatch.Draw(tSpace, new Vector2(0,0), null, Color.White, 0, Vector2.Zero, 1f, SpriteEffects.None, 0);
+
+            cats.Add(position);
 
             foreach (var cat in cats)
             {
-                spriteBatch.Draw(tCat,cat,null,Color.White,0,Vector2.Zero,CatScale, SpriteEffects.None, 0);
+                spriteBatch.Draw(tCat, cat, null, Color.White, rotationAngle, Vector2.Zero, scalePicture, SpriteEffects.None, 0);
             }
 
+            // Строка Hello World
+
+            string output = rotationAngle.ToString();
+
+            // Отыскать центр строки
+
+            Vector2 FontOrigin = spriteFont.MeasureString(output) / 2;
+
+            // Прорисовка строки
+
+            spriteBatch.DrawString(spriteFont, output, FontPosition, Color.Purple, 0, FontOrigin, 1.0f, SpriteEffects.None, 0.5f);
 
 
             spriteBatch.End();
 
             base.Draw(gameTime);
         }
+
+        private float rotationAngle = 0;
+
+        private bool Forward = true;
+
+        private static float scalePicture = 0.02f;
+
+        static float CatScale = 0.02f;
+        static float TrainScale = 0.3f;
+
+        private Size CatSize;
     }
 
     public class Size
