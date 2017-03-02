@@ -22,7 +22,7 @@ namespace CatWorld
         private Texture2D tSpace;
         private Texture2D tOpenCat;
 
-        private float speed = 2f;
+        private float speed = 1f;
 
         private Vector2 FontPosition;
 
@@ -33,7 +33,7 @@ namespace CatWorld
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
 
-            TargetElapsedTime = new System.TimeSpan(0, 0, 0, 0, 150);
+            TargetElapsedTime = new System.TimeSpan(0, 0, 0, 0, 20);
         }
 
         /// <summary>
@@ -52,6 +52,11 @@ namespace CatWorld
             graphics.ApplyChanges();
 
             base.Initialize();
+
+            int w = Window.ClientBounds.Width;
+
+
+            numberOfCats = (int)(w / CatSize.Width);
         }
 
         /// <summary>
@@ -120,26 +125,34 @@ namespace CatWorld
             if (keyboardState.IsKeyDown(Keys.Down))
                 position.Y += speed;
 
-            Random r = new Random(DateTime.Now.Millisecond);
 
-            if (keyboardState.IsKeyDown(Keys.Space))
+            if (speed > 0)
             {
-                if (isPlaying)
-                {
-                    MediaPlayer.Stop();
-                }
-                else
-                {
-                    MediaPlayer.Play(Songs[r.Next(0,Songs.Count)]);
-                }
-                isPlaying = !isPlaying;
+                speed -= 0.09f;
+                
             }
+            else
+            {
+                CanAdd = true;
+                Draw(gameTime);
+                speed = 1f;
+                numberOfCats--;
+                j++;
+            }
+
+
+
 
             base.Update(gameTime);
         }
 
         Vector2 position = Vector2.Zero;
 
+        private int numberOfCats;
+        private int j = 0;
+
+        List<Vector2> PreviousCats = new List<Vector2>();
+        private bool CanAdd = false;
 
 
         /// <summary>
@@ -164,19 +177,27 @@ namespace CatWorld
             var cats = new List<Vector2>();
             var trains = new List<Vector2>();
 
-            int numberOfCats = (int)(w/CatSize.Width);
-            int j = 0;
-            while (numberOfCats>0)
+
+            if (numberOfCats > 0)
             {
                 for (int i = 0; i < numberOfCats; i++)
                 {
-                    cats.Add(new Vector2(i * CatSize.Width + j*(CatSize.Width/2), h - CatSize.Height - (CatSize.Height/2)*j));
+                    cats.Add(new Vector2(i*CatSize.Width + j*(CatSize.Width/2),
+                        h - CatSize.Height - (CatSize.Height/2)*j - (w*speed)));
                 }
-                numberOfCats--;
-                j++;
+            }
+            else
+            {
+                scalePicture = 1f;
+                cats.Add(new Vector2(j * (CatSize.Width / 2f),
+                        h - CatSize.Height - (CatSize.Height / 2) * j - (w * speed)));
             }
 
-
+            if (CanAdd)
+            {
+                PreviousCats.AddRange(cats);
+                CanAdd = false;
+            }
 
             //rotationAngle += 0.01f;
             
@@ -184,7 +205,7 @@ namespace CatWorld
 
             
 
-            //cats.Add(position);
+            cats.AddRange(PreviousCats);
 
             cats.Reverse();
 
@@ -193,8 +214,8 @@ namespace CatWorld
 
             foreach (var cat in cats)
             {
-                bool IsCatSinging = r.Next(1,100) > 50;
-                spriteBatch.Draw(IsCatSinging?tOpenCat:tCat, cat, null, Color.White, rotationAngle, Vector2.Zero, scalePicture, SpriteEffects.None, 0);
+
+                spriteBatch.Draw(tCat, cat, null, Color.White, rotationAngle, Vector2.Zero, scalePicture, SpriteEffects.None, 0);
             }
 
             // Строка Hello World
